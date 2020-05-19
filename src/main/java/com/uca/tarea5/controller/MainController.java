@@ -1,7 +1,10 @@
 package com.uca.tarea5.controller;
 
+
+
 import java.util.List;
 
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,59 +12,66 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.uca.tarea5.dao.EstudianteDAO;
 import com.uca.tarea5.domain.Estudiante;
 
-
+@Transactional
 @Controller
 public class MainController {
 	
 	@Autowired
-	private EstudianteDAO estudianteDAO;
+	private EstudianteDAO estudianteDao;	
 	
-	@RequestMapping("/inicio")
-	public ModelAndView initMain() {
-		ModelAndView mav = new ModelAndView();
+	@RequestMapping(value="/inicio")
+	public ModelAndView inicio() {
+		ModelAndView mav = new ModelAndView();	
 		Estudiante estudiante = new Estudiante();
 		mav.addObject("estudiante", estudiante);
 		mav.setViewName("index");
-		
 		return mav;
 	}
 	
 	
-	@RequestMapping("/ingresarEstudiante")
-	public ModelAndView ingresarEstudiante(@Valid @ModelAttribute Estudiante est, BindingResult res) {
-		ModelAndView mav = new ModelAndView();
+	@RequestMapping(value="/inicio",method=RequestMethod.POST)//ESETE MODIFIQUE '/add'
+	public ModelAndView insertOne(@Valid @ModelAttribute Estudiante estudiante, BindingResult result) {
 		
-		if(res.hasErrors()) {
-			mav.setViewName("index");
-		}else {
-			estudianteDAO.insert(est);
-			mav.setViewName("index");
-		}
+		ModelAndView mav = new ModelAndView();		
+		try {
+			if(result.hasErrors()) {
+					mav.setViewName("index");
+			}else {
+				estudianteDao.insert(estudiante);
+				mav.setViewName("index");
+			}					
+		}catch(Exception e) {
+			e.printStackTrace();
+		}		
 		
 		return mav;
+		
 	}
+	
+	//Mostrar Lista de Estudiantes
 	
 	@RequestMapping("/listado")
-	public ModelAndView listado() {
-		ModelAndView mav = new ModelAndView();
-		List<Estudiante> estudiantes = null;
+	public ModelAndView listadoMain() {
 		
+		ModelAndView mav = new ModelAndView();
+		
+		List<Estudiante> estudiantes = null;
 		try {
-			estudiantes = estudianteDAO.findAll();
+			estudiantes=estudianteDao.findAll();
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
 		
-		
 		mav.addObject("estudiantes", estudiantes);
 		mav.setViewName("listado");
 		
-		return mav;
+		return mav;		
 	}
+
 }
-	
